@@ -13,7 +13,27 @@ source=("alist-${pkgver}-linux-amd64.tar.gz::https://github.com/AlistGo/alist/re
 sha256sums=('SKIP')
 
 package() {
-    dir=$pkgdir/opt/alist
-    mkdir -p $dir
-    tar -xf ./alist-3.41.0-linux-amd64.tar.gz -C $dir
+    INSTALL_PATH=/opt/alist
+    SERVICE_PATH=/etc/systemd/system
+
+    mkdir -p $pkgdir$INSTALL_PATH
+    tar -xf ./alist-${pkgver}-linux-amd64.tar.gz -C $pkgdir$INSTALL_PATH
+
+    mkdir -p $pkgdir$SERVICE_PATH
+    cat > $pkgdir$SERVICE_PATH/alist.service << EOF
+[Unit]
+Description=Alist service
+Wants=network.target
+After=network.target network.service
+
+[Service]
+Type=simple
+WorkingDirectory=$INSTALL_PATH
+ExecStart=$INSTALL_PATH/alist server
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 }
