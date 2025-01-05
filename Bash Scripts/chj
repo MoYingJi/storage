@@ -1,0 +1,40 @@
+#!/usr/bin/bash
+# Required: fzf, archlinux-java (extra/java-runtime-common)
+# Variables: $JVMS_DIR (default: /lib/jvm), $FZF_ARGS
+
+# 用法: chj [java]
+# 参数 java 可以直接是名称 否则就作为模糊搜索初始查询词
+
+[ -z "$JVMS_DIR" ] && JVMS_DIR="/lib/jvm"
+
+is_java() {
+    [ -d "$(realpath "$1")" ] &&
+    [ -f "$1/bin/java" ] &&
+    [ -x "$1/bin/java" ] &&
+    [ -f "$1/release" ] &&
+    return 0; return 1
+}
+
+ch_java() {
+    sudo archlinux-java set "$1" && echo "[chj] 成功切换为: $(readlink $JVMS_DIR/default)" && exit 0
+    echo "[chj] 出现错误!"
+}
+
+
+[ $# -gt 1 ] && echo "Usage: chj [java]" && exit 1
+
+[ ! -z "$1" ] && java="$1"
+
+is_java "$JVMS_DIR/$java" && ch_java "$java" && exit 0
+
+for jvm in $JVMS_DIR/*; do
+    [ "$jvm" == "$JVMS_DIR/default" ] && continue
+    [ "$jvm" == "$JVMS_DIR/default-runtime" ] && continue
+    is_java "$jvm" && CHJ_JVM+=("$(basename $jvm)")
+done
+
+[ ! -z "$java" ] && FZF_ARGS+=("--query" "$java")
+[ "$PREVIEW_RELEASE" ] && FZF_ARGS+=("--preview" "cat $JVMS_DIR/{}/release")
+
+java=$(printf '%s\n' "${CHJ_JVM[@]}" | fzf "${FZF_ARGS[@]}" ) || exit 0
+ch_java "$java"

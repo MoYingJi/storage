@@ -1,0 +1,15 @@
+#!/usr/bin/bash
+# Required: fzf
+# Variables: $FZF_ARGS
+
+# 用法: yc <option> [query]
+# yay 列出本地安装的所有软件包 并执行 <option>
+
+# 如 yc -R linux 会打开 fzf 界面 并设置初始查询词为 linux
+# 选定 linux-lts 后 执行 yay -R linux-lts
+
+[ ! -z "$2" ] && FZF_ARGS+=("--query" "$2")
+
+r=$(yay -Qq | fzf "${FZF_ARGS[@]}" --multi --preview 'yay -Qi {}')
+[ -z "$r" ] && exit 0
+yay $1 $r

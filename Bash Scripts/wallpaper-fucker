@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+# 解决每次删除默认壁纸 但更新又会出现的问题
+
+if [ -z "$WALLPAPER_DIR" ]; then
+    wpd=/usr/share/wallpapers
+else wpd=$WALLPAPER_DIR; fi
+
+echo "当前默认壁纸路径位于 $wpd"
+
+if [ ! -d "$wpd" ]; then
+    echo "这里的默认壁纸已经被你🌿过了 🥵"
+    exit 0
+fi
+
+if [ -d "$wpd.bak" ]; then
+    sudo rm -r $wpd.bak && echo "成功删除上次备份的默认壁纸"
+fi
+
+sudo mv "$wpd" "$wpd.bak" && echo "成功备份默认壁纸"
+sudo touch "$wpd" && echo "成功创建 fucker 文件"
+sudo chattr +i "$wpd" && echo "成功为 fucker 添加写保护"
