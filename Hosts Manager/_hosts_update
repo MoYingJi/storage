@@ -1,0 +1,97 @@
+#!/usr/bin/bash
+# shellcheck disable=SC2164
+
+[ -z "$HOSTS_FILE" ]    && HOSTS_FILE="/etc/hosts"
+[ -z "$HOSTS_DIR" ]     && HOSTS_DIR="$(dirname "$0")"
+[ -z "$PREVIEW_FILE" ]  && PREVIEW_FILE="$(dirname "$0")/_preview"
+[ -z "$PREVIEW_HOSTS" ] && PREVIEW_HOSTS="$(dirname "$0")/_preview_hosts"
+
+[ -z "$FLAG_START" ]    && FLAG_START="# == Hosts Manager Start == #"
+[ -z "$FLAG_END" ]      && FLAG_END="# == Hosts Manager End == #"
+
+# 解析参数
+
+OPTS="$(getopt                                          \
+    -o p,r,d,h:,c:,o:                                   \
+    --long preview,remove,debug,hosts:,config:,output:  \
+    -- "$@" || exit 1                                   \
+)"
+eval set -- "$OPTS"
+while (( "$#" )); do
+    case "$1" in
+        -p|--preview) PREVIEW_ONLY=1;    shift   ;;
+        -r|--remove)  REMOVE=1;          shift   ;;
+        -d|--debug)   DEBUG=1;           shift   ;;
+        -h|--hosts)   HOSTS_FILE="$2";   shift 2 ;;
+        -c|--config)  HOSTS_DIR="$2";    shift 2 ;;
+        -o|--output)  PREVIEW_FILE="$2"; shift 2 ;;
+        --) shift; break;;
+        *) echo "Unknown option: $1";    exit  1 ;;
+    esac
+done
+
+# 提示输出
+
+echo Hosts 文件 位于: "$HOSTS_FILE"
+echo Hosts 管理文件夹 位于: "$HOSTS_DIR"
+
+# 初始化
+
+cd "$HOSTS_DIR"
+echo -n > "$PREVIEW_FILE"
+
+# Debug Output
+
+if [[ "$DEBUG" ]]; then
+    echo "是否正在移除作用: $REMOVE"
+    echo "是否仅预览: $PREVIEW_ONLY"
+    echo "是否调试: $DEBUG"
+    echo "预览文件: $PREVIEW_FILE"
+fi
+
+# 判断是否取消应用
+
+remove() {
+    if grep -q "$FLAG_START" "$PREVIEW_HOSTS"; then
+        sed -i "/$FLAG_START/,/$FLAG_END/d" "$PREVIEW_HOSTS" || exit $?
+    fi
+}
+
+[[ "$REMOVE" ]] && remove && exit 0
+
+# 遍历所有文件
+
+find "$HOSTS_DIR" -type f -print0 | while IFS= read -r -d '' path; do
+    relative="$(realpath -P --relative-to="$HOSTS_DIR" "$path")"
+
+    current_dir="$relative"
+    while [[ "$current_dir" != "/" && "$current_dir" != "." ]]; do
+        check="$(basename "$current_dir")"
+        [[ $check =~ ^[_\.] ]]      && continue 2
+        [[ $check =~ \.disabled$ ]] && continue 2
+        current_dir="$(dirname "$current_dir")"
+    done
+
+    echo "写入文件: $relative"
+    echo "# $relative" >> "$PREVIEW_FILE"
+    cat "$path" >> "$PREVIEW_FILE"
+done
+
+# 将 `_preview` 写入到 `/etc/hosts`
+
+cp "$HOSTS_FILE" "$PREVIEW_HOSTS" || exit $?
+remove
+
+if ! [[ "$REMOVE" ]]; then
+    echo                 >> "$PREVIEW_HOSTS"
+    echo "$FLAG_START"   >> "$PREVIEW_HOSTS"
+    cat  "$PREVIEW_FILE" >> "$PREVIEW_HOSTS"
+    echo "$FLAG_END"     >> "$PREVIEW_HOSTS"
+fi
+
+if [[ "$PREVIEW_ONLY" ]] then
+    echo "当前预览模式 不会修改源文件 请手动查看预览文件"
+    echo "总预览: $(realpath -P "$PREVIEW_FILE")"
+    echo "应用后的预览: $(realpath -P "$PREVIEW_HOSTS")"
+fi
+cp "$PREVIEW_HOSTS" "$HOSTS_FILE" || exit $?
