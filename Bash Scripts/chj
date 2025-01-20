@@ -23,7 +23,7 @@ ch_java() {
 
 [ $# -gt 1 ] && echo "Usage: chj [java]" && exit 1
 
-[ ! -z "$1" ] && java="$1"
+[ -n "$1" ] && java="$1"
 
 is_java "$JVMS_DIR/$java" && ch_java "$java" && exit 0
 
@@ -33,7 +33,7 @@ for jvm in $JVMS_DIR/*; do
     is_java "$jvm" && CHJ_JVM+=("$(basename $jvm)")
 done
 
-[ ! -z "$java" ] && FZF_ARGS+=("--query" "$java")
+[ -n "$java" ] && FZF_ARGS+=("--query" "$java")
 [ "$PREVIEW_RELEASE" ] && FZF_ARGS+=("--preview" "cat $JVMS_DIR/{}/release")
 
 java=$(printf '%s\n' "${CHJ_JVM[@]}" | fzf "${FZF_ARGS[@]}" ) || exit 0
