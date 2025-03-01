@@ -2,7 +2,10 @@
 # shellcheck disable=SC2086
 
 # Required: fzf
-# Variables: $FZF_ARGS
+# Variables:
+#   $QUERY_ARG = "-Qq"
+#   $INFO_ARG  = "-Qi"
+#   $FZF_ARGS += "--query $2"
 
 # 用法: yc <option> [query]
 # yay 列出本地安装的所有软件包 并执行 <option>
@@ -10,8 +13,14 @@
 # 如 yc -R linux 会打开 fzf 界面 并设置初始查询词为 linux
 # 选定 linux-lts 后 执行 yay -R linux-lts
 
+# 环境变量使用示例: 查询所有软件包 (包括未安装 不包括 AUR)
+# QUERY_ARG=-SNlq INFO_ARG=-Si yc
+
+[ -z "$QUERY_ARG" ] && QUERY_ARG="-Qq"
+[ -z "$INFO_ARG" ] && INFO_ARG="-Qi"
+
 [ -n "$2" ] && FZF_ARGS+=("--query" "$2")
 
-r="$(yay -Qq | fzf "${FZF_ARGS[@]}" --multi --preview 'yay -Qi {}')"
+r="$(yay $QUERY_ARG | fzf "${FZF_ARGS[@]}" --multi --preview "yay $INFO_ARG {}")"
 [ -z "$r" ] && exit 0
 yay $1 $r

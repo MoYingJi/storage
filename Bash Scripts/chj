@@ -16,7 +16,7 @@ is_java() {
 }
 
 ch_java() {
-    sudo archlinux-java set "$1" && echo "[chj] 成功切换为: $(readlink $JVMS_DIR/default)" && exit 0
+    sudo archlinux-java set "$1" && echo "[chj] 成功切换为: $(readlink "$JVMS_DIR"/default)" && exit 0
     echo "[chj] 出现错误!"
 }
 
@@ -27,14 +27,28 @@ ch_java() {
 
 is_java "$JVMS_DIR/$java" && ch_java "$java" && exit 0
 
-for jvm in $JVMS_DIR/*; do
+current="$(realpath "$JVMS_DIR/default")"
+for jvm in "$JVMS_DIR"/*; do
     [ "$jvm" == "$JVMS_DIR/default" ] && continue
     [ "$jvm" == "$JVMS_DIR/default-runtime" ] && continue
-    is_java "$jvm" && CHJ_JVM+=("$(basename $jvm)")
+    is_java "$jvm" || continue
+    name="$(basename "$jvm")"
+    if [ "$(realpath "$jvm")" == "$current" ]
+        then CURRENT="$name (default)"
+        else CHJ_JVM+=("$name")
+    fi
 done
+CHJ_JVM=("$CURRENT" "${CHJ_JVM[@]}")
+
+awa() {
+    cat $1
+}
 
 [ -n "$java" ] && FZF_ARGS+=("--query" "$java")
-[ "$PREVIEW_RELEASE" ] && FZF_ARGS+=("--preview" "cat $JVMS_DIR/{}/release")
+[ "$PREVIEW_RELEASE" ] && FZF_ARGS+=("--preview" "echo {} | awk '{print \$1}' | xargs -I % cat $JVMS_DIR/%/release")
 
-java=$(printf '%s\n' "${CHJ_JVM[@]}" | fzf "${FZF_ARGS[@]}" ) || exit 0
+list="$(printf '%s\n' "${CHJ_JVM[@]}")"
+
+java=$(echo "$list" | fzf "${FZF_ARGS[@]}" ) || exit 0
+java=${java% (default)}
 ch_java "$java"

@@ -3,8 +3,8 @@
 
 [ -z "$HOSTS_FILE" ]    && HOSTS_FILE="/etc/hosts"
 [ -z "$HOSTS_DIR" ]     && HOSTS_DIR="$(dirname "$0")"
-[ -z "$PREVIEW_FILE" ]  && PREVIEW_FILE="$(dirname "$0")/_preview"
-[ -z "$PREVIEW_HOSTS" ] && PREVIEW_HOSTS="$(dirname "$0")/_preview_hosts"
+[ -z "$PREVIEW_FILE" ]  && PREVIEW_FILE="$HOSTS_DIR/_preview"
+[ -z "$PREVIEW_HOSTS" ] && PREVIEW_HOSTS="$HOSTS_DIR/_preview_hosts"
 
 [ -z "$FLAG_START" ]    && FLAG_START="# == Hosts Manager Start == #"
 [ -z "$FLAG_END" ]      && FLAG_END="# == Hosts Manager End == #"
