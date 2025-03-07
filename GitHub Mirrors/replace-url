@@ -1,0 +1,37 @@
+#! /bin/bash
+
+mirror="https://gh-proxy.com/" # default mirror
+domain=`echo $1 | cut -f3 -d'/'`
+others=`echo $1 | cut -f4- -d'/'`
+
+source /home/dengh/Application/gh-mirror/config
+
+if [ "$GITHUB_MIRROR" != "" ]; then mirror="$GITHUB_MIRROR"; fi
+if [ "$mirror" == "-" ]; then mirror=""; fi
+
+if [ "$GITHUB_DOAMIN_INSTEAD" == "true" ]
+then mirror="${mirror}https://github.com/"; fi
+
+insu="$1"
+if [ "$GITHUB_DOMAIN_INSTEAD" == "true" ]
+then insu=$others; fi
+
+# Debug Only
+# echo "镜像: $mirror ($GITHUB_MIRROR)"
+# echo "域名: $domain"
+# echo "目录: $others"
+# echo "替换: $GITHUB_DOMAIN_INSTEAD* $insu"
+
+case "$domain" in
+    "github.com" |\
+    "raw.githubusercontent.com" )\
+    url=$mirror$insu ;;
+
+    "ghproxy.com" |\
+    "mirror.ghproxy.com" )\
+    url=$mirror$other ;;
+
+    *) url=$1; ;;
+esac
+
+echo $url

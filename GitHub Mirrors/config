@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+# GitHub Proxy 大善人 经常被墙 地址更换频繁 最新地址发布 ghproxy.link
+export GITHUB_MIRROR="https://ghfast.top/"
+export GITHUB_DOMAIN_INSTEAD="false"

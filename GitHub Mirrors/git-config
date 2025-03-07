@@ -1,0 +1,7 @@
+#! /bin/bash
+if [ $# -gt 1 ]; then echo "[gitconfig-fzf]: 参数过多!" && exit 1; fi
+if [ "$1" == "" ]; then ch="$(ls /home/dengh/Application/gh-mirror/gitconfig | fzf)"
+else ch="$1"; fi
+if [ "$ch" == "" ]; then exit 0; fi
+cat /home/dengh/Application/gh-mirror/gitconfig/$ch > ~/.gitconfig && echo "[gitconfig-fzf] 成功切换为: $ch" && exit 0
+echo "[gitconfig-fzf] 出现错误!"

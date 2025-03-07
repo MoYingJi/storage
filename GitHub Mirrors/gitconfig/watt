@@ -1,0 +1,14 @@
+[user]
+	name = MoYingJi
+	email = moyingjiaw@outlook.com
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[core]
+	editor = nvim
+
+[http "https://github.com"]
+	sslVerify = false
+	proxy = http://127.0.0.1:26561/

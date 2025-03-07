@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+if [ "$1" != "" ]; then
+    cat /home/dengh/Application/gh-mirror/mirrors/$1 > /home/dengh/Application/gh-mirror/config
+    exit 0
+fi
+
+if [ $# -gt 1 ]; then echo "[ghmirror-fzf]: 参数过多!" && exit 1; fi
+if [ "$1" == "" ]; then ch="$(ls /home/dengh/Application/gh-mirror/mirrors | fzf $FZF_ARGS)"
+else ch="$1"; fi
+if [ "$ch" == "" ]; then exit 0; fi
+cat /home/dengh/Application/gh-mirror/mirrors/$ch > /home/dengh/Application/gh-mirror/config && echo "[ghmirror-fzf] 成功切换为: $ch" && exit 0
+echo "[ghmirror-fzf] 出现错误!"

@@ -1,0 +1,20 @@
+#! /bin/bash
+# 请将此文件 ln -s 至 curl 所在目录以外的任意 PATH 目录
+# 支持直接重命名为 curl 以替换 (需要优先级高于 /usr/bin/curl)
+
+replaced_args=()
+for arg in "$@"; do
+    if [[ "$arg" =~ ^http[s]?:// ]]; then
+        # 使用 replace-url 命令替换域名
+        replaced_arg=$("$(dirname "$(realpath "$0")")"/replace-url "$arg")
+        replaced_args+=("$replaced_arg")
+    else replaced_args+=("$arg"); fi
+done
+
+if [[ "$CR_ECHO" ]]; then
+    echo curl-replace "${replaced_args[@]}"
+elif [[ "$CR_STDERR" ]]; then
+    echo curl-replace "${replaced_args[@]}" >&2
+fi
+
+/usr/bin/curl "${replaced_args[@]}"

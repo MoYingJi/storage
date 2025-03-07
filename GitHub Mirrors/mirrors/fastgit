@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+export GITHUB_MIRROR="https://hub.fastgit.org/"
+export GITHUB_DOMAIN_INSTEAD="true"
